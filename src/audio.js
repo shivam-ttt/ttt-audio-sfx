@@ -13,8 +13,11 @@ export default async function applyFadeEffect(
     audioElement.src = src;
     audioElement.load();
 
-    audioElement.addEventListener("play", () => {
-        if (fadeInDuration > 0) {
+    let hasFadedIn = false;
+    let hasFadedOut = false;
+
+    audioElement.addEventListener("canplaythrough", () => {
+        if (!hasFadedIn && fadeInDuration > 0) {
             let currentVolume = 0;
             const fadeInInterval = 50;
             const fadeInStep = fadeInInterval / (fadeInDuration * 1000);
@@ -30,11 +33,15 @@ export default async function applyFadeEffect(
         } else {
             audioElement.volume = maxVolume;
         }
+        hasFadedIn = true;
+    });
 
-        if (fadeOutDuration > 0) {
+    audioElement.addEventListener("timeupdate", () => {
+        if (!hasFadedOut && fadeOutDuration > 0) {
+            const { currentTime } = audioElement;
             const fadeOutStartTime = audioElement.duration - fadeOutDuration;
 
-            setTimeout(() => {
+            if (currentTime >= fadeOutStartTime) {
                 let currentVolume = maxVolume;
                 const fadeOutInterval = 50;
                 const fadeOutStep = fadeOutInterval / (fadeOutDuration * 1000);
@@ -48,7 +55,14 @@ export default async function applyFadeEffect(
                     }
                     audioElement.volume = currentVolume;
                 }, fadeOutInterval);
-            }, fadeOutStartTime * 1000);
+                hasFadedOut = true;
+            }
         }
+    });
+
+    // Reset flags if audio is loaded again
+    audioElement.addEventListener("loadstart", () => {
+        hasFadedIn = false;
+        hasFadedOut = false;
     });
 }
