@@ -7,16 +7,6 @@ function Player({ src, fadeInDuration, fadeOutDuration }) {
     const audioRef = React.useRef(new Audio());
 
     React.useEffect(() => {
-        setInterval(() => {
-            console.log(audioRef.current);
-        }, 1000);
-
-        return () => {
-            clearInterval();
-        };
-    }, []);
-
-    React.useEffect(() => {
         if (src) {
             audioRef.current = new Audio();
             applyFadeEffect(
